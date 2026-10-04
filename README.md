@@ -60,6 +60,11 @@ Login (password default `dev-password`, ganti dengan env `IMVEST_SEED_PASSWORD` 
 - `npm audit` melaporkan advisory pada `maplibre-gl` (sanitizer `setHTML`, **tidak dipakai** di kode ini) dan `postcss` bawaan Next (hanya build-time). Naikkan maplibre ke versi >6.4 bila worker-nya sudah kompatibel dengan Next.
 - Login terkunci setelah 5 gagal; cookie `HttpOnly`, `Secure` saat `IMVEST_ENV=production`. Belum ada: CSRF token (mitigasi: `SameSite=Lax`), 2FA, enkripsi DB. Ini bukan `/security-review` penuh.
 
+## Lisensi
+
+Kode: [MIT](LICENSE). Lisensi ini hanya mencakup kode di repo ini, **bukan data pihak ketiga** (Yahoo Finance, Google News RSS, USGS, Open-Meteo, OpenStreetMap)
+yang punya ketentuan sendiri (lihat "Batas lisensi" di atas). Komponen: Tabler (MIT), MapLibre GL JS (BSD-3-Clause), CesiumJS (Apache-2.0, dimuat dari CDN).
+
 ## Template & tema
 
 UI memakai **Tabler** ([@tabler/core](https://github.com/tabler/tabler) dan [@tabler/icons-webfont](https://github.com/tabler/tabler-icons), keduanya MIT, bebas dipakai komersial) dengan tema **Ocean Depths** dari skill `theme-factory`
