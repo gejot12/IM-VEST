@@ -1,6 +1,6 @@
 "use client";
 import { use, useEffect, useState } from "react";
-import { useApi, pct, cls, num, idr, Source, NewsList, Loading } from "../../lib";
+import { useApi, pct, cls, num, idr, Source, NewsList, Loading, Disclaimer, ExportPdf, PrintHeader } from "../../lib";
 
 function Chart({ rows }) {
   const v = rows.map((r) => r.close), lo = Math.min(...v), hi = Math.max(...v);
@@ -36,7 +36,8 @@ export default function Company({ params }) {
   const d = c.data, pr = b.data?.priority;
   return (
     <>
-      <div className="toolbar" style={{ justifyContent: "space-between" }}><h1 style={{ margin: 0 }}>{d.ticker} — {d.name}</h1><Star ticker={d.ticker} /></div>
+      <PrintHeader title={`Laporan Analisis ${d.ticker} — ${d.name}`} />
+      <div className="toolbar" style={{ justifyContent: "space-between" }}><h1 style={{ margin: 0 }}>{d.ticker} — {d.name}</h1><div className="toolbar noprint"><Star ticker={d.ticker} /><ExportPdf name={d.ticker} /></div></div>
       <div className="muted">{d.sector} {d.commodities.map((x) => <span className="tag" key={x} title="Eksposur dari daftar internal, belum diverifikasi">{x}</span>)}</div>
       <div className="grid" style={{ marginTop: 16 }}>
         <Stat label="Harga">
@@ -93,6 +94,7 @@ export default function Company({ params }) {
 
       <h2>Berita</h2>
       <NewsList items={n.data} />
+      <Disclaimer />
     </>
   );
 }

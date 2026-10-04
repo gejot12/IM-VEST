@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useApi, post, day, Dir, Conf, Loading, safeUrl } from "../lib";
+import { useApi, post, day, Dir, Conf, Loading, safeUrl, Disclaimer, ExportPdf, PrintHeader } from "../lib";
 
 function Impacts({ id }) {
   const r = useApi(`/events/${id}/impacts`);
@@ -36,7 +36,8 @@ export default function Events() {
   const [open, setOpen] = useState(null);
   return (
     <>
-      <h1>Event → Impact</h1>
+      <PrintHeader title="Laporan Event → Impact" />
+      <div className="toolbar" style={{ justifyContent: "space-between" }}><h1 style={{ margin: 0 }}>Event → Impact</h1><ExportPdf name="Event_Impact" /></div>
       <div className="muted">Event = berita yang cocok pola (kebijakan, harga komoditas, bencana). Dampak = inferensi kata kunci dengan keyakinan LOW dan besaran tetap ±0.5: untuk bahan riset, bukan prediksi.</div>
       <Analyzer />
       <h2>Event terdeteksi</h2>
@@ -48,6 +49,7 @@ export default function Events() {
           {open === e.id && <Impacts id={e.id} />}
         </div>
       ))}
+      <Disclaimer />
     </>
   );
 }

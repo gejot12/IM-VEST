@@ -119,3 +119,25 @@ def test_supply_chain_fills_only_stages_with_data(client):
     assert by["Baterai"]["assets"] == [] and by["Baterai"]["asset_type"] is None
     assert "ANTM" in r["exposed_companies"] and "generik" in r["note"]
     assert client.get("/api/v1/supply-chain/plutonium").status_code == 404
+
+
+def test_production_requires_explicit_seed_password(env, monkeypatch):
+    from app import auth, seed
+    monkeypatch.setattr(auth, "PRODUCTION", True)
+    monkeypatch.delenv("IMVEST_SEED_PASSWORD", raising=False)
+    import pytest
+    with pytest.raises(RuntimeError, match="IMVEST_SEED_PASSWORD"):
+        seed.run()
+    monkeypatch.setenv("IMVEST_SEED_PASSWORD", "x" * 12)
+    seed.run()   # dengan password eksplisit berjalan
+
+
+def test_bootstrap_fills_only_an_empty_database(tmp_path, monkeypatch):
+    from app import db, main
+    monkeypatch.setattr(db, "DB_PATH", str(tmp_path / "empty.db"))
+    db.init()
+    calls = []
+    assert main._bootstrap(spawn=calls.append) is True and len(calls) == 1
+    from app import seed
+    seed.run("pw-for-test")
+    assert main._bootstrap(spawn=calls.append) is False and len(calls) == 1

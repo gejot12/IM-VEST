@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { DISCLAIMER } from "./disclaimerText";
 
 // GET /api/v1/<path>; 401 → /login. Mengembalikan {data, error, loading}. error.code "NO_DATA" adalah hasil sah.
 export function useApi(path) {
@@ -55,4 +56,26 @@ export function NewsList({ items }) {
       </div>
     </div>
   ));
+}
+
+export const Disclaimer = () => <div className="banner disclaimer">{DISCLAIMER}</div>;
+
+// Judul laporan yang hanya tampil saat dicetak/ekspor PDF.
+export const PrintHeader = ({ title }) => (
+  <div className="print-only" style={{ marginBottom: 12 }}>
+    <div style={{ fontSize: 11, letterSpacing: 2 }}>IM-VEST INTELLIGENCE</div>
+    <div style={{ fontSize: 20, fontWeight: 700 }}>{title}</div>
+    <div style={{ fontSize: 11 }}>Dibuat {new Date().toLocaleString("id-ID")} · Sumber: Yahoo Finance (tidak resmi), Google News RSS, USGS, Open-Meteo</div>
+  </div>
+);
+
+// Ekspor PDF = cetak halaman (Simpan sebagai PDF); nama berkas diambil dari judul dokumen.
+export function ExportPdf({ name }) {
+  const go = () => {
+    const prev = document.title;
+    document.title = `IM-VEST_${name}_${new Date().toISOString().slice(0, 10)}`;
+    window.print();
+    setTimeout(() => (document.title = prev), 500);
+  };
+  return <button className="ghost noprint" onClick={go} title="Simpan halaman ini sebagai PDF"><i className="ti ti-file-type-pdf" /> Export PDF</button>;
 }

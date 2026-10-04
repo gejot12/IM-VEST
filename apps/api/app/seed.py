@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from . import db
+from . import auth
 from .auth import hash_password
 
 CSV = Path(__file__).parents[3] / "seed" / "companies.csv"
@@ -47,7 +48,11 @@ def _source(con, name, provider, kind):
 
 
 def run(password: str | None = None, fake_prices: bool = False) -> None:
-    password = password or os.environ.get("IMVEST_SEED_PASSWORD", "dev-password")
+    password = password or os.environ.get("IMVEST_SEED_PASSWORD")
+    if not password:
+        if auth.PRODUCTION:  # tidak ada password bawaan di produksi
+            raise RuntimeError("Set IMVEST_SEED_PASSWORD saat IMVEST_ENV=production")
+        password = "dev-password"
     db.init()
     rng = random.Random(42)
     with db.connect() as con:

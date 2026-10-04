@@ -46,7 +46,7 @@ export default function Shell({ children }) {
       <div className="page-wrapper">
         <div className="page-body"><div className="container-xl">{children}</div></div>
         <footer className="footer footer-transparent d-print-none noprint">
-          <div className="container-xl muted">Template: Tabler (MIT) · Tema Ocean Depths · Data: Yahoo Finance (tidak resmi), Google News RSS, USGS, Open-Meteo · Bukan rekomendasi investasi</div>
+          <div className="container-xl muted">Template: Tabler (MIT) · Tema Ocean Depths · Data: Yahoo Finance (tidak resmi), Google News RSS, USGS, Open-Meteo · Bukan nasihat/rekomendasi investasi · <a href="/disclaimer">Disclaimer lengkap</a></div>
         </footer>
       </div>
     </div>

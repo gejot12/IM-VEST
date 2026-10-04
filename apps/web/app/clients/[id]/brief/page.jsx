@@ -1,6 +1,6 @@
 "use client";
 import { use } from "react";
-import { useApi, idr, num, pct, cls, day, NewsList, Loading } from "../../../lib";
+import { useApi, idr, num, pct, cls, day, NewsList, Loading, Disclaimer, ExportPdf, PrintHeader } from "../../../lib";
 
 export default function Brief({ params }) {
   const { id } = use(params);
@@ -10,7 +10,8 @@ export default function Brief({ params }) {
   const { client: c, portfolio: p, recent_news, market_context, event_impacts, questions } = r.data;
   return (
     <>
-      <div className="noprint toolbar"><button onClick={() => window.print()}>Cetak / Simpan PDF</button><a href="/clients">← Client Radar</a></div>
+      <div className="noprint toolbar"><ExportPdf name={`Brief_${c.client_code}`} /><a href="/clients">← Client Radar</a></div>
+      <PrintHeader title={`Meeting Brief — ${c.name}`} />
       <h1>Meeting Brief — {c.name}</h1>
       <div className="banner">{r.data.disclaimer} Dibuat {r.data.generated_at}.</div>
       <div className="grid">
@@ -35,6 +36,7 @@ export default function Brief({ params }) {
       {c.opportunities.length ? c.opportunities.map((o, i) => <p key={i}><span className="tag">{o.type}</span> {o.reason} <b>→ {o.recommended_action}</b></p>) : <p className="muted">Tidak ada.</p>}
       <h2>Pertanyaan untuk nasabah</h2>
       <ol>{questions.map((q) => <li key={q}>{q}</li>)}</ol>
+      <Disclaimer />
     </>
   );
 }

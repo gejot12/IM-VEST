@@ -1,0 +1,18 @@
+# Render Blueprint: API FastAPI (Docker). Web-nya di Vercel (lihat docs/08-deploy.md).
+services:
+  - type: web
+    name: imvest-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /docs
+    envVars:
+      - key: IMVEST_ENV
+        value: production
+      - key: IMVEST_JWT_SECRET
+        generateValue: true
+      - key: IMVEST_SEED_PASSWORD
+        sync: false          # diisi saat membuat service; JANGAN di-commit
+      - key: IMVEST_AUTO_REFRESH_HOURS
+        value: "6"

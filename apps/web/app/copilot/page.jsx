@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { post } from "../lib";
+import { post, Disclaimer } from "../lib";
 
 const EXAMPLES = ["Apa yang bergerak hari ini?", "Analisis ANTM", "Saham terkait nikel", "Perusahaan apa yang terdampak event terbaru?",
   "Tampilkan aset nikel di peta", "Berita batu bara", "Risiko konsentrasi portofolio saya", "Klien mana yang perlu dihubungi hari ini?"];
@@ -37,6 +37,7 @@ export default function Copilot() {
       <form onSubmit={(e) => { e.preventDefault(); ask(q); }} style={{ position: "sticky", bottom: 0, background: "var(--bg)", padding: "12px 0" }}>
         <input placeholder="Tanya apa saja…" value={q} onChange={(e) => setQ(e.target.value)} />
       </form>
+      <Disclaimer />
       <div ref={end} />
     </>
   );

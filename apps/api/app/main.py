@@ -21,9 +21,20 @@ def _auto_refresh(hours: float) -> None:
             print(f"auto-refresh gagal: {e}")
 
 
+def _bootstrap(spawn=lambda f: threading.Thread(target=f, daemon=True).start()) -> bool:
+    """DB kosong (mis. host dengan disk sementara): isi data di thread latar agar server langsung siap menjawab."""
+    with db.connect() as con:
+        empty = con.execute("SELECT COUNT(*) FROM companies").fetchone()[0] == 0
+    if empty:
+        from . import refresh
+        spawn(refresh.main)
+    return empty
+
+
 @asynccontextmanager
 async def lifespan(app):
     db.init()
+    _bootstrap()
     hours = float(os.environ.get("IMVEST_AUTO_REFRESH_HOURS", 0))
     if hours > 0:  # opsional: perbarui harga/berita berkala di thread latar
         threading.Thread(target=_auto_refresh, args=(hours,), daemon=True).start()

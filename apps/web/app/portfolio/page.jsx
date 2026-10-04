@@ -1,12 +1,13 @@
 "use client";
-import { useApi, num, idr, Loading } from "../lib";
+import { useApi, num, idr, Loading, Disclaimer, ExportPdf, PrintHeader } from "../lib";
 
 export default function Portfolio() {
   const p = useApi("/portfolio");
   const d = p.data;
   return (
     <>
-      <h1>My Portfolio</h1>
+      <PrintHeader title="Laporan Portofolio" />
+      <div className="toolbar" style={{ justifyContent: "space-between" }}><h1 style={{ margin: 0 }}>My Portfolio</h1><ExportPdf name="Portofolio" /></div>
       <div className="banner">Posisi di bawah adalah <b>contoh</b> (SEED). Nilai memakai harga terakhir tersimpan. Hanya saham; kas dan obligasi belum ada.</div>
       <Loading s={p} />
       {d && <>
@@ -28,6 +29,7 @@ export default function Portfolio() {
               <td>{num(r.price)}</td><td>{idr(r.value)}</td><td>{r.weight_pct ?? "–"}%</td></tr>))}</tbody>
         </table>
       </>}
+      <Disclaimer />
     </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { use } from "react";
-import { useApi, pct, cls, num, NewsList, Loading } from "../../lib";
+import { useApi, pct, cls, num, NewsList, Loading, Disclaimer, ExportPdf, PrintHeader } from "../../lib";
 
 export default function Sector({ params }) {
   const { code } = use(params);
@@ -10,7 +10,8 @@ export default function Sector({ params }) {
   const d = s.data;
   return (
     <>
-      <h1>{d.name} <span className={cls(d.change_pct)}>{pct(d.change_pct)}</span></h1>
+      <PrintHeader title={`Laporan Sektor ${d.name}`} />
+      <div className="toolbar" style={{ justifyContent: "space-between" }}><h1 style={{ margin: 0 }}>{d.name} <span className={cls(d.change_pct)}>{pct(d.change_pct)}</span></h1><ExportPdf name={`Sektor_${d.code}`} /></div>
       <div className="muted">Rata-rata perubahan harian emiten sektor ini (harga tersimpan).</div>
       <h2>Emiten</h2>
       <table>
@@ -21,6 +22,7 @@ export default function Sector({ params }) {
       </table>
       <h2>Berita sektor (14 hari)</h2>
       <NewsList items={d.news} />
+      <Disclaimer />
     </>
   );
 }

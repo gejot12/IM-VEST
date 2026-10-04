@@ -60,6 +60,16 @@ Login (password default `dev-password`, ganti dengan env `IMVEST_SEED_PASSWORD` 
 - `npm audit` melaporkan advisory pada `maplibre-gl` (sanitizer `setHTML`, **tidak dipakai** di kode ini) dan `postcss` bawaan Next (hanya build-time). Naikkan maplibre ke versi >6.4 bila worker-nya sudah kompatibel dengan Next.
 - Login terkunci setelah 5 gagal; cookie `HttpOnly`, `Secure` saat `IMVEST_ENV=production`. Belum ada: CSRF token (mitigasi: `SameSite=Lax`), 2FA, enkripsi DB. Ini bukan `/security-review` penuh.
 
+## Deploy publik
+
+Web di Vercel + API di Render, konfigurasi sudah ada ([render.yaml](render.yaml), [apps/api/Dockerfile](apps/api/Dockerfile)): ikuti [docs/08-deploy.md](docs/08-deploy.md).
+Di produksi (`IMVEST_ENV=production`) server menolak start tanpa `IMVEST_JWT_SECRET` dan seed menolak tanpa `IMVEST_SEED_PASSWORD`.
+
+## Export PDF
+
+Tombol **Export PDF** ada di halaman emiten, sektor, event, portofolio, dan Meeting Brief: memakai cetak browser (Simpan sebagai PDF) dengan tata letak khusus cetak.
+Setiap halaman analisis memuat disclaimer; versi lengkap di `/disclaimer`.
+
 ## Lisensi
 
 Kode: [MIT](LICENSE). Lisensi ini hanya mencakup kode di repo ini, **bukan data pihak ketiga** (Yahoo Finance, Google News RSS, USGS, Open-Meteo, OpenStreetMap)
@@ -75,4 +85,4 @@ UI memakai **Tabler** ([@tabler/core](https://github.com/tabler/tabler) dan [@ta
 `apps/api` FastAPI + SQLite (dev) · `apps/web` Next.js · `docs/` blueprint (skema PostgreSQL/PostGIS produksi di `01-schema.sql`)
 · `seed/` · [docs/07-status.md](docs/07-status.md) status per hari roadmap.
 
-Tes: `cd apps/api; uv run pytest` (43 tes). Uji asap server yang berjalan (3 peran × 14 endpoint + 12 halaman): `python scripts/smoke.py`.
+Tes: `cd apps/api; uv run pytest` (45 tes). Uji asap server yang berjalan (3 peran × 14 endpoint + 12 halaman): `python scripts/smoke.py`.
