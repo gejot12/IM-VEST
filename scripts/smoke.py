@@ -6,8 +6,8 @@ import sys
 import urllib.error
 import urllib.request
 
-BASE = "http://127.0.0.1:3000"
 PW = sys.argv[1] if len(sys.argv) > 1 else "dev-password"
+BASE = (sys.argv[2] if len(sys.argv) > 2 else "http://127.0.0.1:3000").rstrip("/")
 PAGES = ["/", "/login", "/news", "/events", "/map", "/globe", "/watchlist", "/portfolio", "/supply/NICKEL", "/copilot",
          "/companies/ANTM", "/sectors/ENERGY"]
 API = {  # path -> (peran minimum yang boleh 200, kunci yang harus ada di JSON)
