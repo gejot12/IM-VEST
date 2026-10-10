@@ -10,3 +10,15 @@ export const ASSET_TYPES = {
   TOLL_ROAD: { label: "Jalan tol", color: "#ff7043" },
   OFFICE: { label: "Kantor pusat", color: "#cfd8dc" },
 };
+
+// Kunci = nama sektor di DB (sectors.name); label ditampilkan ke pengguna.
+export const SECTORS = {
+  "Basic Materials": { label: "Bahan baku" },
+  Energy: { label: "Energi" },
+  Financials: { label: "Keuangan" },
+  Infrastructures: { label: "Infrastruktur" },
+  Industrials: { label: "Industri" },
+  "Consumer Non-Cyclicals": { label: "Konsumer primer" },
+  Healthcare: { label: "Kesehatan" },
+  Technology: { label: "Teknologi" },
+};
