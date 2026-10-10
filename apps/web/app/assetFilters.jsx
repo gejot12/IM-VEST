@@ -23,7 +23,7 @@ function Group({ title, items, value, onChange, dot }) {
 }
 
 export const initialSectors = () => Object.fromEntries(Object.keys(SECTORS).map((k) => [k, true]));
-export const initialTypes = () => Object.fromEntries(Object.keys(ASSET_TYPES).map((k) => [k, k !== "OFFICE"]));
+export const initialTypes = () => Object.fromEntries(Object.keys(ASSET_TYPES).map((k) => [k, !["OFFICE", "BRANCH"].includes(k)]));
 export const visible = (props, sectors, types) => !!sectors[props.sector] && !!types[props.asset_type];
 
 export default function AssetFilters({ sectors, setSectors, types, setTypes }) {

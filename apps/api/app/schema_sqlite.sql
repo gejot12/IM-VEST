@@ -39,6 +39,9 @@ CREATE TABLE IF NOT EXISTS locations (
 CREATE TABLE IF NOT EXISTS assets (
   id INTEGER PRIMARY KEY, company_id INTEGER NOT NULL REFERENCES companies, asset_type TEXT NOT NULL, name TEXT NOT NULL,
   location_id INTEGER NOT NULL REFERENCES locations, commodity TEXT, status TEXT);
+CREATE TABLE IF NOT EXISTS public_sites (  -- infrastruktur umum, tidak terikat emiten
+  id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, site_type TEXT NOT NULL, lat REAL NOT NULL, lng REAL NOT NULL,
+  province TEXT, source_id INTEGER NOT NULL REFERENCES data_sources, verified_at TEXT);
 CREATE TABLE IF NOT EXISTS clients (
   id INTEGER PRIMARY KEY, client_code TEXT UNIQUE NOT NULL, name TEXT NOT NULL, rm_id INTEGER REFERENCES users,
   risk_profile TEXT, aum REAL NOT NULL, cash_balance REAL NOT NULL, last_transaction_at TEXT,

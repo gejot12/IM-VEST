@@ -58,9 +58,15 @@ def assets(ticker: str | None = None, commodity: str | None = None):
         sql += " AND a.commodity=?"; args.append(commodity.upper())
     with db.connect() as con:
         rows = con.execute(sql, args).fetchall()
-    return {"type": "FeatureCollection", "features": [
-        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [r["lng"], r["lat"]]},
-         "properties": {k: r[k] for k in r.keys() if k not in ("lat", "lng")} | {"verified": r["verified_at"] is not None}} for r in rows]}
+        # Situs publik (bandara dll) tidak terikat emiten: hanya tampil bila tak ada filter emiten/komoditas.
+        sites = [] if (ticker or commodity) else con.execute(
+            """SELECT -p.id AS id, p.site_type AS asset_type, p.name, NULL AS commodity, NULL AS status, p.lat, p.lng, p.province,
+                      p.verified_at, NULL AS ticker, NULL AS company, 'Publik' AS sector, s.name AS source, s.source_type
+               FROM public_sites p JOIN data_sources s ON s.id=p.source_id""").fetchall()
+    feats = [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [r["lng"], r["lat"]]},
+              "properties": {k: r[k] for k in r.keys() if k not in ("lat", "lng")} | {"verified": r["verified_at"] is not None}}
+             for r in [*rows, *sites]]
+    return {"type": "FeatureCollection", "features": feats}
 
 
 def load_quakes():

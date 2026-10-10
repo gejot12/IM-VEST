@@ -83,6 +83,42 @@ ASSETS = [  # ticker, tipe, nama, komoditas, lat, lng, provinsi
     ("CPIN", "OFFICE", "Kantor pusat (Ancol Jakarta)", None, -6.128, 106.841, "DKI Jakarta"),
     ("GOTO", "OFFICE", "Kantor pusat (Blok M Jakarta)", None, -6.244, 106.799, "DKI Jakarta"),
 ]
+# Bandara utama (titik bandara, dibulatkan; belum diverifikasi). Infrastruktur umum: tidak terikat emiten.
+AIRPORTS = [  # nama, lat, lng, provinsi
+    ("Bandara Soekarno-Hatta (CGK)", -6.1256, 106.6559, "Banten"),
+    ("Bandara Halim Perdanakusuma (HLP)", -6.2661, 106.8909, "DKI Jakarta"),
+    ("Bandara Husein Sastranegara (BDO)", -6.9006, 107.5763, "Jawa Barat"),
+    ("Bandara Kertajati (KJT)", -6.6490, 108.1670, "Jawa Barat"),
+    ("Bandara Ahmad Yani (SRG)", -6.9714, 110.3742, "Jawa Tengah"),
+    ("Bandara Yogyakarta Internasional (YIA)", -7.9007, 110.0570, "DI Yogyakarta"),
+    ("Bandara Juanda (SUB)", -7.3798, 112.7868, "Jawa Timur"),
+    ("Bandara Ngurah Rai (DPS)", -8.7482, 115.1672, "Bali"),
+    ("Bandara Lombok Internasional (LOP)", -8.7573, 116.2767, "Nusa Tenggara Barat"),
+    ("Bandara Kualanamu (KNO)", 3.6422, 98.8853, "Sumatera Utara"),
+    ("Bandara Minangkabau (PDG)", -0.7869, 100.2806, "Sumatera Barat"),
+    ("Bandara Sultan Syarif Kasim II (PKU)", 0.4608, 101.4445, "Riau"),
+    ("Bandara Hang Nadim (BTH)", 1.1210, 104.1189, "Kepulauan Riau"),
+    ("Bandara Sultan Mahmud Badaruddin II (PLM)", -2.8983, 104.6998, "Sumatera Selatan"),
+    ("Bandara Supadio (PNK)", -0.1507, 109.4041, "Kalimantan Barat"),
+    ("Bandara Syamsudin Noor (BDJ)", -3.4424, 114.7625, "Kalimantan Selatan"),
+    ("Bandara Sultan Aji Muhammad Sulaiman (BPN)", -1.2683, 116.8947, "Kalimantan Timur"),
+    ("Bandara Sultan Hasanuddin (UPG)", -5.0617, 119.5540, "Sulawesi Selatan"),
+    ("Bandara Sam Ratulangi (MDC)", 1.5493, 124.9259, "Sulawesi Utara"),
+    ("Bandara Sultan Babullah (TTE)", 0.8315, 127.3815, "Maluku Utara"),
+    ("Bandara Pattimura (AMQ)", -3.7103, 128.0892, "Maluku"),
+    ("Bandara Sentani (DJJ)", -2.5769, 140.5164, "Papua"),
+]
+# Kantor cabang utama: kota besar (pusat kota, perkiraan). Bank-bank ini memang memiliki cabang di ibu kota provinsi;
+# letaknya digeser sedikit per bank agar tidak menumpuk. Bukan daftar lengkap cabang.
+BRANCH_BANKS = ["BBCA", "BBRI", "BMRI", "BBNI", "BRIS"]
+BRANCH_CITIES = [  # kota, lat, lng, provinsi
+    ("Medan", 3.5952, 98.6722, "Sumatera Utara"), ("Pekanbaru", 0.5071, 101.4478, "Riau"),
+    ("Palembang", -2.9761, 104.7754, "Sumatera Selatan"), ("Bandung", -6.9175, 107.6191, "Jawa Barat"),
+    ("Semarang", -6.9667, 110.4167, "Jawa Tengah"), ("Surabaya", -7.2575, 112.7521, "Jawa Timur"),
+    ("Denpasar", -8.6705, 115.2126, "Bali"), ("Pontianak", -0.0263, 109.3425, "Kalimantan Barat"),
+    ("Banjarmasin", -3.3194, 114.5908, "Kalimantan Selatan"), ("Balikpapan", -1.2379, 116.8529, "Kalimantan Timur"),
+    ("Makassar", -5.1477, 119.4327, "Sulawesi Selatan"), ("Manado", 1.4748, 124.8421, "Sulawesi Utara"),
+]
 HOLDINGS = {  # klien contoh: ticker -> lembar
     "A": {"BBCA": 200000, "BBRI": 300000, "BMRI": 150000},
     "B": {"ANTM": 400000, "INCO": 20000, "PTBA": 100000},
@@ -138,6 +174,18 @@ def run(password: str | None = None, fake_prices: bool = False) -> None:
                               (name, typ, lat, lng, prov, seed_src)).lastrowid
             con.execute("INSERT INTO assets(company_id, asset_type, name, location_id, commodity, status) VALUES (?,?,?,?,?,?)",
                         (ids[t], typ, name, lid, comm, "UNKNOWN"))
+        for i, t in enumerate(BRANCH_BANKS):   # cabang utama bank per kota (upsert per emiten+nama)
+            for city, lat, lng, prov in BRANCH_CITIES:
+                name = f"Kantor cabang utama ({city})"
+                if (ids[t], name) in have:
+                    continue
+                lid = con.execute("INSERT INTO locations(name, location_type, lat, lng, province, source_id) VALUES (?,?,?,?,?,?)",
+                                  (f"{t} {name}", "BRANCH", lat, lng + (i - 2) * 0.012, prov, seed_src)).lastrowid
+                con.execute("INSERT INTO assets(company_id, asset_type, name, location_id, commodity, status) VALUES (?,?,?,?,?,?)",
+                            (ids[t], "BRANCH", name, lid, None, "UNKNOWN"))
+        for name, lat, lng, prov in AIRPORTS:
+            con.execute("INSERT OR IGNORE INTO public_sites(name, site_type, lat, lng, province, source_id) VALUES (?,?,?,?,?,?)",
+                        (name, "AIRPORT", lat, lng, prov, seed_src))
         users = {r["email"]: r["id"] for r in con.execute("SELECT id, email FROM users")}
         if con.execute("SELECT COUNT(*) FROM clients").fetchone()[0] == 0:
             profiles = ["CONSERVATIVE", "MODERATE", "AGGRESSIVE"]

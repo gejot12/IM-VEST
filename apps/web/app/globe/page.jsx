@@ -36,10 +36,10 @@ export default function Globe() {
         for (const f of assets.features) {
           const [lng, lat] = f.geometry.coordinates, p = f.properties;
           const entity = viewer.entities.add({
-            position: C.Cartesian3.fromDegrees(lng, lat), name: `${p.ticker} — ${p.name}`,
+            position: C.Cartesian3.fromDegrees(lng, lat), name: p.ticker ? `${p.ticker} — ${p.name}` : p.name,
             point: { pixelSize: 12, color: C.Color.fromCssColorString(ASSET_TYPES[p.asset_type]?.color ?? "#3b82f6"), outlineColor: C.Color.WHITE, outlineWidth: 2 },
-            label: { text: p.ticker, font: "13px sans-serif", pixelOffset: new C.Cartesian2(0, -18), fillColor: C.Color.WHITE, outlineColor: C.Color.BLACK, outlineWidth: 3, style: C.LabelStyle.FILL_AND_OUTLINE },
-            description: box(`<b>${esc(ASSET_TYPES[p.asset_type]?.label ?? p.asset_type)}</b>${p.commodity ? " · " + esc(p.commodity) : ""}<br>${esc(p.sector ?? "")}<br>${esc(p.province)}<br><i>${p.verified ? "terverifikasi" : "lokasi kawasan perkiraan, belum diverifikasi"}</i><br><a style="color:#0b5cad;font-weight:600" href="/companies/${encodeURIComponent(p.ticker)}" target="_blank">Halaman emiten</a>`),
+            label: p.asset_type === "BRANCH" ? undefined : { text: p.ticker ?? p.name.replace(/^Bandara /, "").replace(/ \(.*$/, ""), font: "13px sans-serif", pixelOffset: new C.Cartesian2(0, -18), fillColor: C.Color.WHITE, outlineColor: C.Color.BLACK, outlineWidth: 3, style: C.LabelStyle.FILL_AND_OUTLINE },
+            description: box(`<b>${esc(ASSET_TYPES[p.asset_type]?.label ?? p.asset_type)}</b>${p.commodity ? " · " + esc(p.commodity) : ""}<br>${esc(p.sector ?? "")}<br>${esc(p.province)}<br><i>${p.verified ? "terverifikasi" : "lokasi kawasan perkiraan, belum diverifikasi"}</i><br>${p.ticker ? `<a style="color:#0b5cad;font-weight:600" href="/companies/${encodeURIComponent(p.ticker)}" target="_blank">Halaman emiten</a>` : ""}`),
           });
           ents.current.push({ entity, props: p });
         }

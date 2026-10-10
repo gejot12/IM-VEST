@@ -8,6 +8,8 @@ export const ASSET_TYPES = {
   FACTORY: { label: "Pabrik", color: "#e67e22" },
   PLANTATION: { label: "Perkebunan", color: "#8bc34a" },
   TOLL_ROAD: { label: "Jalan tol", color: "#ff7043" },
+  AIRPORT: { label: "Bandara", color: "#5c6bc0" },
+  BRANCH: { label: "Kantor cabang bank", color: "#ec407a" },
   OFFICE: { label: "Kantor pusat", color: "#cfd8dc" },
 };
 
@@ -21,4 +23,5 @@ export const SECTORS = {
   "Consumer Non-Cyclicals": { label: "Konsumer primer" },
   Healthcare: { label: "Kesehatan" },
   Technology: { label: "Teknologi" },
+  Publik: { label: "Infrastruktur umum" },
 };

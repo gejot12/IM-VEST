@@ -182,9 +182,9 @@ def test_assets_cover_all_sectors_and_seed_is_idempotent(client, env):
     login(client)
     f = client.get("/api/v1/map/assets").json()["features"]
     types = {x["properties"]["asset_type"] for x in f}
-    assert {"MINE", "SMELTER", "PORT", "POWER_PLANT", "FACTORY", "PLANTATION", "TOLL_ROAD", "GAS_FIELD", "OFFICE"} <= types
+    assert {"MINE", "SMELTER", "PORT", "POWER_PLANT", "FACTORY", "PLANTATION", "TOLL_ROAD", "GAS_FIELD", "OFFICE", "AIRPORT", "BRANCH"} <= types
     sectors = {x["properties"]["sector"] for x in f}
-    assert {"Financials", "Technology", "Infrastructures", "Energy", "Basic Materials"} <= sectors  # bukan hanya tambang
+    assert {"Financials", "Technology", "Infrastructures", "Energy", "Basic Materials", "Publik"} <= sectors  # bukan hanya tambang
     assert all(not x["properties"]["verified"] for x in f)
     n = len(f)
     seed.run(PW_FOR_SEED)   # jalan ulang tidak menggandakan aset
@@ -196,3 +196,18 @@ def test_assets_cover_all_sectors_and_seed_is_idempotent(client, env):
 
 
 PW_FOR_SEED = "test-password"
+
+
+def test_airports_and_branches(client):
+    login(client)
+    f = client.get("/api/v1/map/assets").json()["features"]
+    airports = [x for x in f if x["properties"]["asset_type"] == "AIRPORT"]
+    assert len(airports) >= 20 and all(x["properties"]["ticker"] is None for x in airports)
+    assert any("Soekarno-Hatta" in x["properties"]["name"] for x in airports)
+    branches = [x for x in f if x["properties"]["asset_type"] == "BRANCH"]
+    assert {x["properties"]["ticker"] for x in branches} == {"BBCA", "BBRI", "BMRI", "BBNI", "BRIS"}
+    assert len(branches) == 5 * 12
+    # filter emiten: hanya aset milik emiten itu, tanpa bandara umum
+    bca = client.get("/api/v1/map/assets", params={"ticker": "BBCA"}).json()["features"]
+    assert bca and all(x["properties"]["ticker"] == "BBCA" for x in bca)
+    assert not any(x["properties"]["asset_type"] == "AIRPORT" for x in bca)
