@@ -108,6 +108,29 @@ AIRPORTS = [  # nama, lat, lng, provinsi
     ("Bandara Pattimura (AMQ)", -3.7103, 128.0892, "Maluku"),
     ("Bandara Sentani (DJJ)", -2.5769, 140.5164, "Papua"),
 ]
+# Terminal/pelabuhan umum utama (kawasan pelabuhan, dibulatkan; belum diverifikasi). Infrastruktur umum, tidak terikat emiten.
+PUBLIC_PORTS = [  # nama, lat, lng, provinsi
+    ("Pelabuhan Tanjung Priok", -6.1030, 106.8860, "DKI Jakarta"),
+    ("Pelabuhan Patimban", -6.2500, 107.9000, "Jawa Barat"),
+    ("Pelabuhan Tanjung Emas (Semarang)", -6.9500, 110.4250, "Jawa Tengah"),
+    ("Pelabuhan Tanjung Perak (Surabaya)", -7.2000, 112.7330, "Jawa Timur"),
+    ("Pelabuhan Cilacap", -7.7300, 109.0100, "Jawa Tengah"),
+    ("Pelabuhan Merak", -5.9300, 106.0100, "Banten"),
+    ("Pelabuhan Bakauheni", -5.8700, 105.7500, "Lampung"),
+    ("Pelabuhan Belawan (Medan)", 3.7870, 98.6970, "Sumatera Utara"),
+    ("Pelabuhan Kuala Tanjung", 3.3500, 99.4600, "Sumatera Utara"),
+    ("Pelabuhan Boom Baru (Palembang)", -2.9600, 104.7700, "Sumatera Selatan"),
+    ("Pelabuhan Batu Ampar (Batam)", 1.1500, 104.0000, "Kepulauan Riau"),
+    ("Pelabuhan Benoa", -8.7500, 115.2200, "Bali"),
+    ("Pelabuhan Pontianak", -0.0200, 109.3300, "Kalimantan Barat"),
+    ("Pelabuhan Trisakti (Banjarmasin)", -3.3600, 114.5700, "Kalimantan Selatan"),
+    ("Pelabuhan Semayang (Balikpapan)", -1.2750, 116.8100, "Kalimantan Timur"),
+    ("Pelabuhan Makassar", -5.1190, 119.4040, "Sulawesi Selatan"),
+    ("Pelabuhan Bitung", 1.4400, 125.1900, "Sulawesi Utara"),
+    ("Pelabuhan Ambon", -3.6900, 128.1700, "Maluku"),
+    ("Pelabuhan Sorong", -0.8800, 131.2500, "Papua Barat Daya"),
+    ("Pelabuhan Tenau (Kupang)", -10.1700, 123.5700, "Nusa Tenggara Timur"),
+]
 # Kantor cabang utama: kota besar (pusat kota, perkiraan). Bank-bank ini memang memiliki cabang di ibu kota provinsi;
 # letaknya digeser sedikit per bank agar tidak menumpuk. Bukan daftar lengkap cabang.
 BRANCH_BANKS = ["BBCA", "BBRI", "BMRI", "BBNI", "BRIS"]
@@ -183,6 +206,18 @@ def run(password: str | None = None, fake_prices: bool = False) -> None:
                                   (f"{t} {name}", "BRANCH", lat, lng + (i - 2) * 0.012, prov, seed_src)).lastrowid
                 con.execute("INSERT INTO assets(company_id, asset_type, name, location_id, commodity, status) VALUES (?,?,?,?,?,?)",
                             (ids[t], "BRANCH", name, lid, None, "UNKNOWN"))
+        for i, t in enumerate(BRANCH_BANKS):   # kantor wilayah: bank besar umumnya punya kantor wilayah di kota-kota ini
+            for city, lat, lng, prov in BRANCH_CITIES:
+                name = f"Kantor wilayah ({city})"
+                if (ids[t], name) in have:
+                    continue
+                lid = con.execute("INSERT INTO locations(name, location_type, lat, lng, province, source_id) VALUES (?,?,?,?,?,?)",
+                                  (f"{t} {name}", "REGIONAL", lat + 0.015, lng + (i - 2) * 0.012, prov, seed_src)).lastrowid
+                con.execute("INSERT INTO assets(company_id, asset_type, name, location_id, commodity, status) VALUES (?,?,?,?,?,?)",
+                            (ids[t], "REGIONAL", name, lid, None, "UNKNOWN"))
+        for name, lat, lng, prov in PUBLIC_PORTS:
+            con.execute("INSERT OR IGNORE INTO public_sites(name, site_type, lat, lng, province, source_id) VALUES (?,?,?,?,?,?)",
+                        (name, "PORT", lat, lng, prov, seed_src))
         for name, lat, lng, prov in AIRPORTS:
             con.execute("INSERT OR IGNORE INTO public_sites(name, site_type, lat, lng, province, source_id) VALUES (?,?,?,?,?,?)",
                         (name, "AIRPORT", lat, lng, prov, seed_src))
@@ -199,10 +234,11 @@ def run(password: str | None = None, fake_prices: bool = False) -> None:
                                    aum, cash, last.isoformat(timespec="seconds")))
                 for t, q in hold.items():
                     con.execute("INSERT INTO positions(client_id, company_id, quantity) VALUES (?,?,?)", (cur.lastrowid, ids[t], q))
-        if con.execute("SELECT COUNT(*) FROM positions WHERE user_id IS NOT NULL").fetchone()[0] == 0:
-            for t, q in {"BBCA": 20000, "ANTM": 50000, "TLKM": 30000, "ASII": 10000}.items():
-                con.execute("INSERT INTO positions(user_id, company_id, quantity) VALUES (?,?,?)",
-                            (users["investor@imvest.local"], ids[t], q))
+        for email in ("investor@imvest.local", "mahroja@imvest.local"):   # portofolio contoh per pengguna (hanya bila kosong)
+            uid = users[email]
+            if con.execute("SELECT COUNT(*) FROM positions WHERE user_id=?", (uid,)).fetchone()[0] == 0:
+                for t, q in {"BBCA": 20000, "ANTM": 50000, "TLKM": 30000, "ASII": 10000}.items():
+                    con.execute("INSERT INTO positions(user_id, company_id, quantity) VALUES (?,?,?)", (uid, ids[t], q))
 
 
 if __name__ == "__main__":

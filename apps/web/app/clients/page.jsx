@@ -17,6 +17,7 @@ export default function Clients() {
       <div className="banner">Seluruh data nasabah adalah <b>DUMMY</b> untuk demo. Skor RM: 30% kas, 25% potensi transaksi, 20% inaktivitas, 15% konsentrasi, 10% relevansi pasar (deterministik).</div>
       <div className="toolbar">{FILTERS.map(([v, l]) => <button key={v} className={f === v ? "" : "ghost"} onClick={() => setF(v)}>{l}</button>)}</div>
       <Loading s={r} />
+      {rows && rows.length === 0 && <p className="muted">Tidak ada klien yang cocok dengan filter ini.</p>}
       <table>
         <thead><tr><th></th><th>Klien</th><th>AUM</th><th>Kas</th><th>Transaksi terakhir</th><th>Skor</th><th>Peluang</th></tr></thead>
         <tbody>{rows?.map((c) => (

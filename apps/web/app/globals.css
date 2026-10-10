@@ -59,3 +59,26 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
   .banner, .disclaimer { background: #f6f6f6; color: #222; border: 1px solid #999; page-break-inside: avoid; }
   .card, .row, tr { page-break-inside: avoid; }
 }
+
+/* Filter peta/globe: chip + panel lipat */
+.filters { margin: 10px 0 14px; }
+.filters summary { cursor: pointer; font-weight: 600; color: #a8dadc; list-style: none; }
+.filters summary::-webkit-details-marker { display: none; }
+.filters summary::before { content: "▾ "; } .filters:not([open]) summary::before { content: "▸ "; }
+.filter-group { margin-top: 10px; }
+.filter-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; font-size: 12px; user-select: none; color: #b6c7d8; transition: background .12s, border-color .12s; }
+.chip:hover { border-color: #2d8b8b; }
+.chip input { display: none; }
+.chip.on { background: rgba(45,139,139,.22); border-color: #2d8b8b; color: #f1faee; }
+.chip .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.35); }
+button.mini { padding: 1px 9px; font-size: 12px; }
+
+/* Tabel bisa digulir di layar kecil; tombol tidak melebihi layar */
+@media (max-width: 768px) {
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+  .toolbar { gap: 8px; } .toolbar button { flex: 1 1 auto; }
+  h1 { font-size: 1.25rem; }
+  #map { height: 420px; }
+}

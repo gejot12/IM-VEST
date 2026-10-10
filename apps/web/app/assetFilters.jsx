@@ -1,19 +1,22 @@
 "use client";
 import { ASSET_TYPES, SECTORS } from "./assetTypes";
 
-// Filter bersama peta 2D dan globe 3D: pilih sektor dan jenis aset (centang), plus "Semua"/"Kosongkan".
+// Filter bersama peta 2D dan globe 3D: chip sektor + jenis aset, tombol "Semua"/"Kosongkan", bisa dilipat.
 function Group({ title, items, value, onChange, dot }) {
   const set = (v) => onChange(Object.fromEntries(Object.keys(items).map((k) => [k, v])));
+  const n = Object.keys(items).filter((k) => value[k]).length;
   return (
-    <div style={{ margin: "6px 0" }}>
-      <div className="toolbar" style={{ margin: 0 }}>
-        <b style={{ minWidth: 90 }}>{title}</b>
-        <button className="ghost" style={{ padding: "2px 10px" }} onClick={() => set(true)}>Semua</button>
-        <button className="ghost" style={{ padding: "2px 10px" }} onClick={() => set(false)}>Kosongkan</button>
+    <div className="filter-group">
+      <div className="filter-head">
+        <b>{title}</b> <span className="muted">{n}/{Object.keys(items).length}</span>
+        <button type="button" className="ghost mini" onClick={() => set(true)}>Semua</button>
+        <button type="button" className="ghost mini" onClick={() => set(false)}>Kosongkan</button>
+      </div>
+      <div className="chips">
         {Object.entries(items).map(([k, v]) => (
-          <label key={k}>
+          <label key={k} className={`chip ${value[k] ? "on" : ""}`}>
             <input type="checkbox" checked={!!value[k]} onChange={(e) => onChange({ ...value, [k]: e.target.checked })} />
-            {dot && <span style={{ width: 10, height: 10, borderRadius: 5, background: v.color, display: "inline-block" }} />}
+            {dot && <span className="dot" style={{ background: v.color }} />}
             {v.label}
           </label>
         ))}
@@ -23,14 +26,15 @@ function Group({ title, items, value, onChange, dot }) {
 }
 
 export const initialSectors = () => Object.fromEntries(Object.keys(SECTORS).map((k) => [k, true]));
-export const initialTypes = () => Object.fromEntries(Object.keys(ASSET_TYPES).map((k) => [k, !["OFFICE", "BRANCH"].includes(k)]));
+export const initialTypes = () => Object.fromEntries(Object.keys(ASSET_TYPES).map((k) => [k, !["OFFICE", "BRANCH", "REGIONAL"].includes(k)]));
 export const visible = (props, sectors, types) => !!sectors[props.sector] && !!types[props.asset_type];
 
 export default function AssetFilters({ sectors, setSectors, types, setTypes }) {
   return (
-    <div className="card" style={{ margin: "10px 0" }}>
+    <details open className="card filters">
+      <summary>Filter sektor &amp; jenis aset</summary>
       <Group title="Sektor" items={SECTORS} value={sectors} onChange={setSectors} />
       <Group title="Jenis aset" items={ASSET_TYPES} value={types} onChange={setTypes} dot />
-    </div>
+    </details>
   );
 }

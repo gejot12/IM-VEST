@@ -211,3 +211,23 @@ def test_airports_and_branches(client):
     bca = client.get("/api/v1/map/assets", params={"ticker": "BBCA"}).json()["features"]
     assert bca and all(x["properties"]["ticker"] == "BBCA" for x in bca)
     assert not any(x["properties"]["asset_type"] == "AIRPORT" for x in bca)
+
+
+def test_public_ports_and_regional_offices(client):
+    login(client)
+    f = client.get("/api/v1/map/assets").json()["features"]
+    public_ports = [x for x in f if x["properties"]["asset_type"] == "PORT" and x["properties"]["ticker"] is None]
+    assert len(public_ports) >= 18 and any("Tanjung Priok" in x["properties"]["name"] for x in public_ports)
+    assert all(x["properties"]["sector"] == "Publik" for x in public_ports)
+    regional = [x for x in f if x["properties"]["asset_type"] == "REGIONAL"]
+    assert len(regional) == 5 * 12 and {x["properties"]["ticker"] for x in regional} == {"BBCA", "BBRI", "BMRI", "BBNI", "BRIS"}
+    # pelabuhan umum tidak mengotori rantai pasok per komoditas (tanpa komoditas)
+    coal = {s["stage"]: s for s in client.get("/api/v1/supply-chain/COAL").json()["stages"]}
+    assert all(a["ticker"] for a in coal["Pengangkutan & pelabuhan"]["assets"])
+
+
+def test_every_demo_user_with_a_portfolio_has_positions(client):
+    for user in ("investor", "mahroja"):
+        client.post("/api/v1/auth/login", json={"email": user, "password": "test-password"})
+        p = client.get("/api/v1/portfolio").json()
+        assert len(p["positions"]) == 4 and p["total_value"] > 0 and p["allocation"], user

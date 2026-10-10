@@ -41,7 +41,7 @@ export default function MapPage() {
         for (const id of ["assets", "earthquakes", "fires"]) map.addSource(id, { type: "geojson", data: empty });
         map.addLayer({ id: "fires", type: "circle", source: "fires", paint: { "circle-radius": 3, "circle-color": "#ff5a1f", "circle-opacity": 0.8 } });
         map.addLayer({ id: "earthquakes", type: "circle", source: "earthquakes", paint: { "circle-radius": ["*", ["get", "mag"], 2.2], "circle-color": "#e74c3c", "circle-opacity": 0.45, "circle-stroke-color": "#e74c3c", "circle-stroke-width": 1 } });
-        map.addLayer({ id: "assets", type: "circle", source: "assets", paint: { "circle-radius": 8, "circle-color": ["match", ["get", "asset_type"], "MINE", "#f1c40f", "SMELTER", "#2ecc71", "PORT", "#3498db", "POWER_PLANT", "#b57edc", "GAS_FIELD", "#00bcd4", "FACTORY", "#e67e22", "PLANTATION", "#8bc34a", "TOLL_ROAD", "#ff7043", "OFFICE", "#cfd8dc", "AIRPORT", "#5c6bc0", "BRANCH", "#ec407a", "#3b82f6"], "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+        map.addLayer({ id: "assets", type: "circle", source: "assets", paint: { "circle-radius": 8, "circle-color": ["match", ["get", "asset_type"], "MINE", "#f1c40f", "SMELTER", "#2ecc71", "PORT", "#3498db", "POWER_PLANT", "#b57edc", "GAS_FIELD", "#00bcd4", "FACTORY", "#e67e22", "PLANTATION", "#8bc34a", "TOLL_ROAD", "#ff7043", "OFFICE", "#90a4ae", "AIRPORT", "#5c6bc0", "BRANCH", "#ec407a", "REGIONAL", "#ffffff", "#3b82f6"], "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
         const popup = (e, lines) => new maplibregl.Popup().setLngLat(e.lngLat).setDOMContent(node(lines)).addTo(map);
         map.on("click", "assets", (e) => {
           const p = e.features[0].properties, w = weather.current[p.id];

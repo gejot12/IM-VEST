@@ -10,7 +10,8 @@ export default function Portfolio() {
       <div className="toolbar" style={{ justifyContent: "space-between" }}><h1 style={{ margin: 0 }}>My Portfolio</h1><ExportPdf name="Portofolio" /></div>
       <div className="banner">Posisi di bawah adalah <b>contoh</b> (SEED). Nilai memakai harga terakhir tersimpan. Hanya saham; kas dan obligasi belum ada.</div>
       <Loading s={p} />
-      {d && <>
+      {d && d.positions.length === 0 && <p className="muted">Belum ada posisi di portofolio ini. Posisi akan muncul setelah ditambahkan.</p>}
+      {d && d.positions.length > 0 && <>
         <div className="grid">
           <div className="card"><div className="muted">Total nilai saham</div><div style={{ fontSize: 22 }}>{idr(d.total_value)}</div></div>
           <div className="card"><div className="muted">Top holding</div><div style={{ fontSize: 22 }}>{d.top_holding?.ticker} {d.top_holding?.weight_pct}%</div></div>
