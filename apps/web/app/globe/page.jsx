@@ -39,7 +39,7 @@ export default function Globe() {
             position: C.Cartesian3.fromDegrees(lng, lat), name: `${p.ticker} — ${p.name}`,
             point: { pixelSize: 12, color: C.Color.fromCssColorString(ASSET_TYPES[p.asset_type]?.color ?? "#3b82f6"), outlineColor: C.Color.WHITE, outlineWidth: 2 },
             label: { text: p.ticker, font: "13px sans-serif", pixelOffset: new C.Cartesian2(0, -18), fillColor: C.Color.WHITE, outlineColor: C.Color.BLACK, outlineWidth: 3, style: C.LabelStyle.FILL_AND_OUTLINE },
-            description: box(`<b>${esc(ASSET_TYPES[p.asset_type]?.label ?? p.asset_type)}</b>${p.commodity ? " · " + esc(p.commodity) : ""}<br>${esc(p.sector ?? "")}<br>${esc(p.province)}<br><i>${p.verified ? "terverifikasi" : "lokasi kawasan perkiraan, belum diverifikasi"}</i><br><a href="/companies/${encodeURIComponent(p.ticker)}" target="_blank">Halaman emiten</a>`),
+            description: box(`<b>${esc(ASSET_TYPES[p.asset_type]?.label ?? p.asset_type)}</b>${p.commodity ? " · " + esc(p.commodity) : ""}<br>${esc(p.sector ?? "")}<br>${esc(p.province)}<br><i>${p.verified ? "terverifikasi" : "lokasi kawasan perkiraan, belum diverifikasi"}</i><br><a style="color:#0b5cad;font-weight:600" href="/companies/${encodeURIComponent(p.ticker)}" target="_blank">Halaman emiten</a>`),
           });
           ents.current.push({ entity, props: p });
         }
@@ -48,7 +48,7 @@ export default function Globe() {
           viewer.entities.add({
             position: C.Cartesian3.fromDegrees(lng, lat), name: `Gempa M${p.mag}`,
             point: { pixelSize: p.mag * 3, color: C.Color.RED.withAlpha(0.45), outlineColor: C.Color.RED, outlineWidth: 1 },
-            description: box(`${esc(p.place)}<br>kedalaman ${Math.round(p.depth_km)} km` + (safeUrl(p.url) ? `<br><a href="${esc(safeUrl(p.url))}" target="_blank" rel="noreferrer">USGS</a>` : "")),
+            description: box(`${esc(p.place)}<br>kedalaman ${Math.round(p.depth_km)} km` + (safeUrl(p.url) ? `<br><a style="color:#0b5cad;font-weight:600" href="${esc(safeUrl(p.url))}" target="_blank" rel="noreferrer">USGS</a>` : "")),
           });
         }
         setCounts((c) => ({ ...c, total: assets.features.length, quakes: quakes.features.length }));
