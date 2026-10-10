@@ -6,10 +6,14 @@ import secrets
 import jwt
 from fastapi import Cookie, Depends, HTTPException
 
+PRODUCTION = os.environ.get("IMVEST_ENV") == "production" or bool(os.environ.get("VERCEL"))
 SECRET = os.environ.get("IMVEST_JWT_SECRET", "dev-only-change-me-please-use-32-bytes-min")
-PRODUCTION = os.environ.get("IMVEST_ENV") == "production"
 if PRODUCTION and SECRET.startswith("dev-only"):
-    raise RuntimeError("Set IMVEST_JWT_SECRET (>=32 byte acak) saat IMVEST_ENV=production")
+    # Satu variabel cukup: turunkan secret JWT dari IMVEST_SEED_PASSWORD (tak pernah disimpan/di-log).
+    _seed = os.environ.get("IMVEST_SEED_PASSWORD")
+    if not _seed:
+        raise RuntimeError("Set IMVEST_SEED_PASSWORD (atau IMVEST_JWT_SECRET >=32 byte) di produksi")
+    SECRET = hmac.new(b"imvest-jwt-v1", _seed.encode(), hashlib.sha256).hexdigest()
 RANK = {"INVESTOR": 0, "RM": 1, "ANALYST": 2, "ADMIN": 3}
 
 

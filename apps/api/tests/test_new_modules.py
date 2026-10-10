@@ -141,3 +141,37 @@ def test_bootstrap_fills_only_an_empty_database(tmp_path, monkeypatch):
     from app import seed
     seed.run("pw-for-test")
     assert main._bootstrap(spawn=calls.append) is False and len(calls) == 1
+
+
+def test_vercel_copies_snapshot_to_writable_path(tmp_path, monkeypatch):
+    import sqlite3
+    from app import db
+    snap = tmp_path / "snap.sqlite3"
+    c = sqlite3.connect(snap); c.execute("CREATE TABLE marker(x)"); c.execute("INSERT INTO marker VALUES (42)"); c.commit(); c.close()
+    target = tmp_path / "tmp" / "imvest.db"
+    target.parent.mkdir()
+    monkeypatch.setattr(db, "ON_VERCEL", True)
+    monkeypatch.setattr(db, "SNAPSHOT", snap)
+    monkeypatch.setattr(db, "DB_PATH", str(target))
+    db.init()
+    with db.connect() as con:
+        assert con.execute("SELECT x FROM marker").fetchone()[0] == 42   # data snapshot terbawa
+        assert con.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0  # skema tetap dibuat
+    # dingin kedua: tidak menimpa DB yang sudah ada (watchlist pengguna tetap)
+    with db.connect() as con:
+        con.execute("INSERT INTO marker VALUES (7)")
+    db.init()
+    with db.connect() as con:
+        assert con.execute("SELECT COUNT(*) FROM marker").fetchone()[0] == 2
+
+
+def test_production_secret_is_derived_or_refuses():
+    import os
+    import subprocess
+    import sys
+    base = {k: v for k, v in os.environ.items() if k not in ("IMVEST_JWT_SECRET", "IMVEST_SEED_PASSWORD", "VERCEL", "IMVEST_ENV")}
+    cmd = [sys.executable, "-c", "import app.auth as a; print(a.SECRET[:8], a.PRODUCTION)"]
+    refuse = subprocess.run(cmd, env={**base, "VERCEL": "1"}, capture_output=True, text=True)
+    assert refuse.returncode != 0 and "IMVEST_SEED_PASSWORD" in refuse.stderr
+    ok = subprocess.run(cmd, env={**base, "VERCEL": "1", "IMVEST_SEED_PASSWORD": "kata-sandi-uji-123"}, capture_output=True, text=True)
+    assert ok.returncode == 0 and ok.stdout.split()[1] == "True" and not ok.stdout.startswith("dev-only")

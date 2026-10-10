@@ -1,39 +1,30 @@
-# Deploy: web di Vercel, API di Render (gratis)
+# Deploy gratis tanpa kartu: web + API di Vercel
 
-Arsitektur: browser → **Vercel** (Next.js, proxy `/api/*`) → **Render** (FastAPI + SQLite sementara).
-Cookie login ada di domain Vercel (same-origin lewat proxy), jadi tidak perlu CORS.
+Dua proyek Vercel (Hobby, gratis) dari repo yang sama:
 
-> Saya (asisten) tidak punya akses ke akun hosting-mu, jadi langkah klik di bawah kamu yang menjalankan. Semua konfigurasi sudah ada di repo.
+| Proyek | Root Directory | Isi |
+|---|---|---|
+| `im-vest` | `apps/web` | Next.js (UI); `API_URL` menunjuk ke proyek API |
+| `im-vest-api` | `apps/api` | FastAPI (serverless Python) + snapshot data |
 
-## 1. API di Render (kerjakan dulu)
+## Cara kerja API di Vercel
+- **Saat build** (`apps/api/vercel.json` → `buildCommand`): `python -m app.refresh` menarik harga, fundamental, dan berita ke `data/snapshot.sqlite3` (±8–10 menit; batas build Vercel 45 menit).
+- **Saat berjalan**: snapshot disalin ke `/tmp/imvest.db` (satu-satunya folder yang bisa ditulis). Watchlist dan log akses bersifat sementara dan hilang tiap instans baru.
+- **Data diperbarui dengan redeploy** (Deployments → Redeploy), atau setiap push ke `main`.
+- Variabel wajib: **`IMVEST_SEED_PASSWORD`** (password 3 akun demo; juga dipakai menurunkan secret JWT). Tanpa ini build gagal dengan pesan jelas.
+- Opsional: `IMVEST_JWT_SECRET` (≥32 karakter acak) jika mau secret terpisah; `FIRMS_MAP_KEY`; `ANTHROPIC_API_KEY`.
 
-1. https://render.com → daftar/login dengan GitHub.
-2. **New +** → **Blueprint** → pilih repo `gejot12/IM-VEST` → Render membaca [render.yaml](../render.yaml).
-3. Isi variabel yang diminta: **`IMVEST_SEED_PASSWORD`** = password kuat untuk 3 akun demo (min. 12 karakter). `IMVEST_JWT_SECRET` dibuat otomatis.
-4. **Apply**. Build Docker ±3–5 menit. Catat URL-nya, mis. `https://imvest-api.onrender.com`.
-5. Setelah hidup, server mengisi data sendiri di latar (harga, fundamental, berita; ±3 menit). Selama itu halaman tampil "data tidak tersedia".
+## Langkah
+1. Vercel → **Add New → Project** → impor `gejot12/IM-VEST` → **Root Directory `apps/api`** → Framework "Other".
+   Environment Variables: `IMVEST_SEED_PASSWORD` = password kuat pilihanmu. **Deploy**.
+2. Salin URL proyek API (mis. `https://im-vest-api.vercel.app`).
+3. Proyek `im-vest` → Settings → Environment Variables → `API_URL` = URL langkah 2 (tanpa `/` di akhir) → **Redeploy**.
+4. Uji: `python scripts/smoke.py PASSWORD https://im-vest.vercel.app`.
 
-Catatan paket gratis: layanan tidur setelah ±15 menit tanpa trafik dan **disk bersifat sementara**, jadi setiap bangun dari tidur/restart database dibangun ulang (±3 menit) dan watchlist pengguna hilang. Untuk data tetap: pakai Postgres (lihat README, "Belum ada").
+## Batasan yang perlu diketahui
+- IP build/runtime Vercel bisa dibatasi Yahoo/Google; kalau harga/berita kosong, itu sumbernya, bukan bug.
+- Data Yahoo/Google News hanya untuk pemakaian pribadi (lihat README); jangan jadikan layanan publik/komersial tanpa sumber berlisensi.
+- Snapshot tidak masuk repo (`.gitignore`); hanya ada di hasil build Vercel.
 
-## 2. Web di Vercel
-
-1. https://vercel.com → login dengan GitHub → **Add New… → Project** → impor `gejot12/IM-VEST`.
-2. **Root Directory**: `apps/web` (Framework: Next.js terdeteksi otomatis).
-3. **Environment Variables**: `API_URL` = URL Render dari langkah 1 (tanpa garis miring di akhir).
-4. **Deploy**. Alamat publik: `https://<nama-proyek>.vercel.app`.
-5. Login memakai email `investor@imvest.local`, `rm@imvest.local`, `admin@imvest.local` dan password yang kamu isi di langkah 1.3.
-
-Mengganti `API_URL` setelahnya: ubah variabel lalu **Redeploy** (rewrite dibaca saat build).
-
-## Peringatan sebelum dibuka ke publik
-
-- **Siapa pun yang tahu URL + password bisa masuk.** Jangan bagikan password; akun demo berisi data DUMMY, tapi API-nya meneruskan data Yahoo/Google News ke pengunjung.
-- **Ketentuan data:** Yahoo (tidak resmi) dan Google News RSS (non-komersial) dilarang/tidak cocok untuk layanan publik/komersial. Untuk pemakaian pribadi atau demo terbatas, batasi akses; untuk produksi, ganti ke IDX Data Services dan berita berlisensi.
-- **IP cloud bisa diblokir Yahoo/Google:** bila harga/berita kosong setelah bootstrap, lihat log Render; itu bukan bug aplikasi.
-- Repositori ini **publik**; jangan commit `.env` atau kunci. Variabel rahasia hanya di dashboard Render/Vercel.
-- Ini bukan nasihat investasi; disclaimer tampil di tiap halaman analisis dan di `/disclaimer`.
-
-## Alternatif satu server (VPS/Docker)
-
-`docker build -f apps/api/Dockerfile -t imvest-api .` untuk API; web: `cd apps/web && npm ci && npm run build && API_URL=http://api:8000 npm start`.
-(Dockerfile belum diuji di mesin pengembangan karena tidak ada Docker; Render akan mengujinya saat build pertama.)
+## Alternatif
+Render (butuh kartu), Docker/VPS: `docker build -f apps/api/Dockerfile -t imvest-api .` (belum diuji di mesin pengembangan).

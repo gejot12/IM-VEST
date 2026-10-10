@@ -12,7 +12,8 @@ from . import db
 from . import auth
 from .auth import hash_password
 
-CSV = Path(__file__).parents[3] / "seed" / "companies.csv"
+_LOCAL = Path(__file__).parent.parent / "data" / "companies.csv"
+CSV = _LOCAL if _LOCAL.exists() else Path(__file__).parents[3] / "seed" / "companies.csv"
 DEV_USERS = [("admin@imvest.local", "ADMIN"), ("rm@imvest.local", "RM"), ("investor@imvest.local", "INVESTOR")]
 COMMODITIES = ("NICKEL", "COAL", "CPO", "GOLD", "OIL", "COPPER")
 

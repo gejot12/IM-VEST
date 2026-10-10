@@ -1,0 +1,31 @@
+ticker,name,sector,commodity_exposure
+ANTM,Aneka Tambang Tbk,Basic Materials,NICKEL;GOLD
+INCO,Vale Indonesia Tbk,Basic Materials,NICKEL
+MBMA,Merdeka Battery Materials Tbk,Basic Materials,NICKEL
+NCKL,Trimegah Bangun Persada Tbk,Basic Materials,NICKEL
+MDKA,Merdeka Copper Gold Tbk,Basic Materials,GOLD;COPPER
+AMMN,Amman Mineral Internasional Tbk,Basic Materials,COPPER;GOLD
+PTBA,Bukit Asam Tbk,Energy,COAL
+ADRO,Alamtri Resources Indonesia Tbk,Energy,COAL
+ITMG,Indo Tambangraya Megah Tbk,Energy,COAL
+BUMI,Bumi Resources Tbk,Energy,COAL
+PGAS,Perusahaan Gas Negara Tbk,Energy,
+MEDC,Medco Energi Internasional Tbk,Energy,OIL
+AKRA,AKR Corporindo Tbk,Energy,OIL
+BBCA,Bank Central Asia Tbk,Financials,
+BBRI,Bank Rakyat Indonesia (Persero) Tbk,Financials,
+BMRI,Bank Mandiri (Persero) Tbk,Financials,
+BBNI,Bank Negara Indonesia (Persero) Tbk,Financials,
+BRIS,Bank Syariah Indonesia Tbk,Financials,
+TLKM,Telkom Indonesia (Persero) Tbk,Infrastructures,
+ISAT,Indosat Tbk,Infrastructures,
+JSMR,Jasa Marga (Persero) Tbk,Infrastructures,
+ASII,Astra International Tbk,Industrials,
+UNTR,United Tractors Tbk,Industrials,COAL
+UNVR,Unilever Indonesia Tbk,Consumer Non-Cyclicals,
+ICBP,Indofood CBP Sukses Makmur Tbk,Consumer Non-Cyclicals,
+INDF,Indofood Sukses Makmur Tbk,Consumer Non-Cyclicals,
+AALI,Astra Agro Lestari Tbk,Consumer Non-Cyclicals,CPO
+KLBF,Kalbe Farma Tbk,Healthcare,
+CPIN,Charoen Pokphand Indonesia Tbk,Consumer Non-Cyclicals,
+GOTO,GoTo Gojek Tokopedia Tbk,Technology,

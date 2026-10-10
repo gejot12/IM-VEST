@@ -13,6 +13,11 @@ def main(quick: bool = False) -> None:
     print("prices:", sum(yahoo.prices().values()), "bars")
     if not quick:
         r = yahoo.fundamentals()
+        for _ in range(2):  # timeout sesaat dari Yahoo: ulangi hanya yang gagal
+            missing = [t for t, ok in r.items() if not ok]
+            if not missing:
+                break
+            r |= yahoo.fundamentals(missing, delay=1.0)
         print("fundamentals:", sum(r.values()), "/", len(r))
     print("news baru:", gnews.run())
     print("tautan entitas:", rules.run(), "| sentimen:", sentiment.run(), "| event baru:", events.run())
