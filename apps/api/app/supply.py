@@ -14,7 +14,7 @@ STAGES = {  # (nama tahap, tipe aset di tabel assets atau None bila belum ada da
     "COAL": [("Penambangan", "MINE"), ("Pengangkutan & pelabuhan", "PORT"), ("Pembangkit listrik / ekspor", "POWER_PLANT")],
     "GOLD": [("Penambangan", "MINE"), ("Pemurnian (refinery)", "SMELTER"), ("Perdagangan / perhiasan", None)],
     "COPPER": [("Penambangan", "MINE"), ("Peleburan (smelter)", "SMELTER"), ("Produk jadi (kabel, dll)", None)],
-    "CPO": [("Perkebunan", None), ("Pabrik kelapa sawit", "FACTORY"), ("Refinery / ekspor", "PORT")],
+    "CPO": [("Perkebunan", "PLANTATION"), ("Pabrik kelapa sawit", "FACTORY"), ("Refinery / ekspor", "PORT")],
 }
 
 

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { safeUrl } from "../lib";
+import { ASSET_TYPES } from "../assetTypes";
 
 const get = (p) => fetch(`/api/v1/map${p}`).then(async (r) => (r.ok ? r.json() : { error: (await r.json()).detail }));
 // Popup dibangun dari node DOM + textContent (tanpa setHTML): nilai dari USGS/DB tidak pernah diparse sebagai HTML.
@@ -23,6 +24,7 @@ const empty = { type: "FeatureCollection", features: [] };
 export default function MapPage() {
   const el = useRef(null), mapRef = useRef(null), weather = useRef({});
   const [on, setOn] = useState({ assets: true, earthquakes: true, weather: false, fires: false });
+  const [types, setTypes] = useState(() => Object.fromEntries(Object.keys(ASSET_TYPES).map((k) => [k, k !== "OFFICE"])));
   const [notes, setNotes] = useState({});
   const [ready, setReady] = useState(false);
 
@@ -37,11 +39,11 @@ export default function MapPage() {
         for (const id of ["assets", "earthquakes", "fires"]) map.addSource(id, { type: "geojson", data: empty });
         map.addLayer({ id: "fires", type: "circle", source: "fires", paint: { "circle-radius": 3, "circle-color": "#ff5a1f", "circle-opacity": 0.8 } });
         map.addLayer({ id: "earthquakes", type: "circle", source: "earthquakes", paint: { "circle-radius": ["*", ["get", "mag"], 2.2], "circle-color": "#e74c3c", "circle-opacity": 0.45, "circle-stroke-color": "#e74c3c", "circle-stroke-width": 1 } });
-        map.addLayer({ id: "assets", type: "circle", source: "assets", paint: { "circle-radius": 8, "circle-color": ["match", ["get", "commodity"], "NICKEL", "#2ecc71", "COAL", "#444", "GOLD", "#f1c40f", "COPPER", "#e67e22", "#3b82f6"], "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+        map.addLayer({ id: "assets", type: "circle", source: "assets", paint: { "circle-radius": 8, "circle-color": ["match", ["get", "asset_type"], "MINE", "#f1c40f", "SMELTER", "#2ecc71", "PORT", "#3498db", "POWER_PLANT", "#b57edc", "GAS_FIELD", "#00bcd4", "FACTORY", "#e67e22", "PLANTATION", "#8bc34a", "TOLL_ROAD", "#ff7043", "OFFICE", "#cfd8dc", "#3b82f6"], "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
         const popup = (e, lines) => new maplibregl.Popup().setLngLat(e.lngLat).setDOMContent(node(lines)).addTo(map);
         map.on("click", "assets", (e) => {
           const p = e.features[0].properties, w = weather.current[p.id];
-          popup(e, [[{ b: p.ticker }, ` — ${p.name}`], `${p.asset_type} · ${p.commodity}`, p.province,
+          popup(e, [[{ b: p.ticker }, ` — ${p.name}`], `${ASSET_TYPES[p.asset_type]?.label ?? p.asset_type}${p.commodity && p.commodity !== "null" ? " · " + p.commodity : ""}`, p.province,
             p.verified === "true" || p.verified === true ? "terverifikasi" : "lokasi perkiraan, belum diverifikasi",
             ...(w ? [`Cuaca: ${w.temperature_2m}°C, hujan ${w.precipitation} mm, angin ${w.wind_speed_10m} km/j`] : []),
             { href: `/companies/${encodeURIComponent(p.ticker)}`, text: "Halaman emiten" }]);
@@ -62,6 +64,7 @@ export default function MapPage() {
     if (!ready || !map) return;
     const q = new URLSearchParams(window.location.search).get("ticker");
     for (const id of ["assets", "earthquakes", "fires"]) map.setLayoutProperty(id, "visibility", on[id] ? "visible" : "none");
+    map.setFilter("assets", ["in", ["get", "asset_type"], ["literal", Object.keys(types).filter((k) => types[k])]]);
     (async () => {
       if (on.assets) {
         const d = await get(`/assets${q ? `?ticker=${q}` : ""}`);
@@ -72,7 +75,7 @@ export default function MapPage() {
       if (on.fires) { const d = await get("/fires"); map.getSource("fires").setData(d.features ? d : empty); setNotes((n) => ({ ...n, fires: d.error?.message ?? d.attribution })); }
       if (on.weather) { const d = await get("/weather"); weather.current = d.by_asset ?? {}; setNotes((n) => ({ ...n, weather: d.error?.message ?? `${d.attribution} · klik aset untuk melihat` })); }
     })();
-  }, [on, ready]);
+  }, [on, ready, types]);
 
   const Toggle = ({ id, label }) => <label><input type="checkbox" checked={on[id]} onChange={(e) => setOn({ ...on, [id]: e.target.checked })} />{label}</label>;
   return (
@@ -84,8 +87,14 @@ export default function MapPage() {
       </div>
       {Object.entries(notes).map(([k, v]) => v && <div key={k} className="muted">{k}: {v}</div>)}
       <div className="banner">Lokasi aset adalah <b>perkiraan kawasan</b> (belum diverifikasi ke dokumen perusahaan). Gambar peta © OpenStreetMap contributors, OpenFreeMap.</div>
+      <div className="toolbar">
+        {Object.entries(ASSET_TYPES).map(([k, v]) => (
+          <label key={k}><input type="checkbox" checked={types[k]} onChange={(e) => setTypes({ ...types, [k]: e.target.checked })} />
+            <span style={{ width: 10, height: 10, borderRadius: 5, background: v.color, display: "inline-block" }} />{v.label}</label>
+        ))}
+      </div>
       <div id="map" ref={el} />
-      <div className="muted" style={{ marginTop: 8 }}>Warna aset: hijau nikel · abu batu bara · kuning emas · oranye tembaga. Layer cuaca (Open-Meteo) gratis hanya untuk non-komersial. Layer FIRMS butuh env FIRMS_MAP_KEY.</div>
+      <div className="muted" style={{ marginTop: 8 }}>Warna = jenis aset (lihat legenda). Layer cuaca (Open-Meteo) gratis hanya untuk non-komersial. Layer FIRMS butuh env FIRMS_MAP_KEY.</div>
     </>
   );
 }

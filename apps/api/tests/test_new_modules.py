@@ -175,3 +175,24 @@ def test_production_secret_is_derived_or_refuses():
     assert refuse.returncode != 0 and "IMVEST_SEED_PASSWORD" in refuse.stderr
     ok = subprocess.run(cmd, env={**base, "VERCEL": "1", "IMVEST_SEED_PASSWORD": "kata-sandi-uji-123"}, capture_output=True, text=True)
     assert ok.returncode == 0 and ok.stdout.split()[1] == "True" and not ok.stdout.startswith("dev-only")
+
+
+def test_assets_cover_all_sectors_and_seed_is_idempotent(client, env):
+    from app import seed
+    login(client)
+    f = client.get("/api/v1/map/assets").json()["features"]
+    types = {x["properties"]["asset_type"] for x in f}
+    assert {"MINE", "SMELTER", "PORT", "POWER_PLANT", "FACTORY", "PLANTATION", "TOLL_ROAD", "GAS_FIELD", "OFFICE"} <= types
+    sectors = {x["properties"]["sector"] for x in f}
+    assert {"Financials", "Technology", "Infrastructures", "Energy", "Basic Materials"} <= sectors  # bukan hanya tambang
+    assert all(not x["properties"]["verified"] for x in f)
+    n = len(f)
+    seed.run(PW_FOR_SEED)   # jalan ulang tidak menggandakan aset
+    assert len(client.get("/api/v1/map/assets").json()["features"]) == n
+    ports = client.get("/api/v1/map/assets", params={"commodity": "coal"}).json()["features"]
+    assert any(x["properties"]["asset_type"] == "PORT" for x in ports)
+    chain = {s["stage"]: s for s in client.get("/api/v1/supply-chain/COAL").json()["stages"]}
+    assert chain["Pengangkutan & pelabuhan"]["assets"]            # tahap pelabuhan kini berisi
+
+
+PW_FOR_SEED = "test-password"

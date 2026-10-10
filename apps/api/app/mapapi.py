@@ -38,7 +38,7 @@ def in_bbox(lng: float, lat: float) -> bool:
 
 @router.get("/layers")
 def layers():
-    return [{"id": "assets", "name": "Aset perusahaan", "status": "OK", "note": "Lokasi perkiraan, belum diverifikasi"},
+    return [{"id": "assets", "name": "Aset perusahaan", "status": "OK", "note": "Lokasi kawasan perkiraan, belum diverifikasi"},
             {"id": "earthquakes", "name": "Gempa (USGS, 7 hari)", "status": "OK"},
             {"id": "weather", "name": "Cuaca di aset (Open-Meteo)", "status": "OK", "note": "Gratis hanya non-komersial"},
             {"id": "fires", "name": "Titik api (NASA FIRMS)", "status": "OK" if os.environ.get("FIRMS_MAP_KEY") else "NEEDS_KEY"}]
@@ -47,8 +47,9 @@ def layers():
 @router.get("/assets")
 def assets(ticker: str | None = None, commodity: str | None = None):
     sql = """SELECT a.id, a.asset_type, a.name, a.commodity, a.status, l.lat, l.lng, l.province, l.verified_at,
-                    c.ticker, c.name AS company, s.name AS source, s.source_type
+                    c.ticker, c.name AS company, sc.name AS sector, s.name AS source, s.source_type
              FROM assets a JOIN locations l ON l.id=a.location_id JOIN companies c ON c.id=a.company_id
+             LEFT JOIN sectors sc ON sc.id=c.sector_id
              JOIN data_sources s ON s.id=l.source_id WHERE 1=1"""
     args = []
     if ticker:
