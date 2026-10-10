@@ -1,5 +1,6 @@
 {
-  "buildCommand": "IMVEST_DB=data/snapshot.sqlite3 uv run python -m app.refresh",
+  "buildCommand": "IMVEST_DB=data/snapshot.sqlite3 uv run python -m app.refresh && mkdir -p public && echo ok > public/health.txt",
+  "outputDirectory": "public",
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
   "functions": { "api/index.py": { "includeFiles": "{data/**,app/**}", "maxDuration": 60 } }
 }
