@@ -231,3 +231,25 @@ def test_every_demo_user_with_a_portfolio_has_positions(client):
         client.post("/api/v1/auth/login", json={"email": user, "password": "test-password"})
         p = client.get("/api/v1/portfolio").json()
         assert len(p["positions"]) == 4 and p["total_value"] > 0 and p["allocation"], user
+
+
+def test_public_map_api_is_readonly_cors_limited_and_region_aware(client):
+    # tanpa login
+    r = client.get("/api/v1/public/assets", params={"ticker": "ANTM"}, headers={"Origin": "https://brids-bandung.vercel.app"})
+    assert r.status_code == 200 and r.headers["access-control-allow-origin"] == "https://brids-bandung.vercel.app"
+    f = r.json()["features"]
+    assert f and all(x["properties"]["ticker"] == "ANTM" for x in f)
+    assert "max-age" in r.headers["cache-control"]
+    # origin lain tidak diberi header CORS
+    other = client.get("/api/v1/public/assets", params={"ticker": "ANTM"}, headers={"Origin": "https://evil.example"})
+    assert "access-control-allow-origin" not in other.headers
+    # wilayah: semua aset di provinsi (emiten lain + situs publik), bukan hanya satu emiten
+    reg = client.get("/api/v1/public/regions").json()
+    assert any(x["province"] == "Sulawesi Tenggara" and x["count"] >= 1 for x in reg) and any(x["province"] == "DKI Jakarta" for x in reg)
+    jkt = client.get("/api/v1/public/assets", params={"province": "DKI Jakarta"}).json()["features"]
+    assert len({x["properties"]["ticker"] for x in jkt}) > 5 and all(x["properties"]["province"] == "DKI Jakarta" for x in jkt)
+    # wajib salah satu filter (tidak membocorkan seluruh dataset secara tak sengaja)
+    assert client.get("/api/v1/public/assets").status_code == 422
+    # tidak ada akses tulis/klien lewat jalur publik
+    assert client.get("/api/v1/public/clients").status_code == 404
+    assert client.post("/api/v1/public/assets", json={}).status_code == 405

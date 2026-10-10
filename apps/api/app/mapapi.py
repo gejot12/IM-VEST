@@ -8,7 +8,7 @@ import os
 import time
 import urllib.request
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 
 from . import db
 from .auth import require
@@ -44,8 +44,8 @@ def layers():
             {"id": "fires", "name": "Titik api (NASA FIRMS)", "status": "OK" if os.environ.get("FIRMS_MAP_KEY") else "NEEDS_KEY"}]
 
 
-@router.get("/assets")
-def assets(ticker: str | None = None, commodity: str | None = None):
+def query_assets(ticker: str | None = None, commodity: str | None = None, province: str | None = None):
+    """GeoJSON aset (+ situs publik). Dipakai route terproteksi dan route publik baca-saja."""
     sql = """SELECT a.id, a.asset_type, a.name, a.commodity, a.status, l.lat, l.lng, l.province, l.verified_at,
                     c.ticker, c.name AS company, sc.name AS sector, s.name AS source, s.source_type
              FROM assets a JOIN locations l ON l.id=a.location_id JOIN companies c ON c.id=a.company_id
@@ -56,17 +56,51 @@ def assets(ticker: str | None = None, commodity: str | None = None):
         sql += " AND c.ticker=?"; args.append(ticker.upper())
     if commodity:
         sql += " AND a.commodity=?"; args.append(commodity.upper())
+    if province:
+        sql += " AND l.province=?"; args.append(province)
     with db.connect() as con:
         rows = con.execute(sql, args).fetchall()
         # Situs publik (bandara dll) tidak terikat emiten: hanya tampil bila tak ada filter emiten/komoditas.
         sites = [] if (ticker or commodity) else con.execute(
             """SELECT -p.id AS id, p.site_type AS asset_type, p.name, NULL AS commodity, NULL AS status, p.lat, p.lng, p.province,
                       p.verified_at, NULL AS ticker, NULL AS company, 'Publik' AS sector, s.name AS source, s.source_type
-               FROM public_sites p JOIN data_sources s ON s.id=p.source_id""").fetchall()
+               FROM public_sites p JOIN data_sources s ON s.id=p.source_id""" + (" WHERE p.province=?" if province else ""),
+            [province] if province else []).fetchall()
     feats = [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [r["lng"], r["lat"]]},
               "properties": {k: r[k] for k in r.keys() if k not in ("lat", "lng")} | {"verified": r["verified_at"] is not None}}
              for r in [*rows, *sites]]
     return {"type": "FeatureCollection", "features": feats}
+
+
+@router.get("/assets")
+def assets(ticker: str | None = None, commodity: str | None = None, province: str | None = None):
+    return query_assets(ticker, commodity, province)
+
+
+# ---- API PUBLIK baca-saja (tanpa login) untuk dipasang di situs lain (mis. BRIDS). Hanya data aset perkiraan
+# yang sudah publik; tidak ada data klien/portofolio. CORS dibatasi di main.py (IMVEST_CORS_ORIGINS).
+public = APIRouter(prefix="/api/v1/public")
+PUBLIC_HEADERS = {"Cache-Control": "public, max-age=300"}
+
+
+@public.get("/assets")
+def public_assets(response: Response, ticker: str | None = None, province: str | None = None):
+    response.headers.update(PUBLIC_HEADERS)
+    if not (ticker or province):
+        raise HTTPException(422, {"code": "FILTER_REQUIRED", "message": "Isi ticker atau province"})
+    return query_assets(ticker=ticker, province=province)
+
+
+@public.get("/regions")
+def public_regions(response: Response):
+    """Daftar provinsi + jumlah aset (emiten + situs publik) untuk pemilih wilayah."""
+    response.headers.update(PUBLIC_HEADERS)
+    with db.connect() as con:
+        rows = con.execute("""SELECT province, COUNT(*) AS n FROM (
+                                 SELECT l.province FROM assets a JOIN locations l ON l.id=a.location_id
+                                 UNION ALL SELECT province FROM public_sites) WHERE province IS NOT NULL
+                              GROUP BY province ORDER BY province""").fetchall()
+    return [{"province": r["province"], "count": r["n"]} for r in rows]
 
 
 def load_quakes():

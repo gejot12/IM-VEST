@@ -4,6 +4,7 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Response
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from . import clients, copilot, db, insights, mapapi, queries, supply, watch
@@ -42,6 +43,9 @@ async def lifespan(app):
 
 
 app = FastAPI(title="IM-VEST Intelligence API", lifespan=lifespan)
+# CORS hanya untuk endpoint publik baca-saja (GET, tanpa kredensial): situs yang boleh menanamkan peta.
+_origins = [o.strip() for o in os.environ.get("IMVEST_CORS_ORIGINS", "https://brids-bandung.vercel.app,https://portofolio-nasabah.vercel.app,http://localhost:5173").split(",") if o.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=_origins, allow_methods=["GET"], allow_headers=[], allow_credentials=False)
 api = APIRouter(prefix="/api/v1")
 RANGE_DAYS = {"1M": 30, "3M": 90, "1Y": 366}
 inv = [Depends(require("INVESTOR"))]
@@ -259,6 +263,7 @@ def analyze_event(body: EventText):
 app.include_router(api)
 app.include_router(clients.router)
 app.include_router(mapapi.router)
+app.include_router(mapapi.public)
 app.include_router(copilot.router)
 app.include_router(watch.router)
 app.include_router(supply.router)

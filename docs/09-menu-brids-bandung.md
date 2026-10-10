@@ -1,3 +1,5 @@
+> **Digantikan oleh [10-brids-globe-analisa-saham.md](10-brids-globe-analisa-saham.md)**: di BRIDS hanya Globe 3D di Analisa Saham yang dibutuhkan, bukan menu IM-VEST.
+
 # Menambah menu "IM-VEST Intelligence" di website BRIDS Bandung (Vercel)
 
 Proyek: `brids-bandung` (portofolio-nasabah.vercel.app). Stack yang terbaca dari dashboard Vercel (hanya baca):

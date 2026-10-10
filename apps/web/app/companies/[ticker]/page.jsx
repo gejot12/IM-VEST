@@ -1,6 +1,7 @@
 "use client";
 import { use, useEffect, useState } from "react";
 import { useApi, pct, cls, num, idr, Source, NewsList, Loading, Disclaimer, ExportPdf, PrintHeader } from "../../lib";
+import AssetMap from "../../AssetMap";
 
 function Chart({ rows }) {
   const v = rows.map((r) => r.close), lo = Math.min(...v), hi = Math.max(...v);
@@ -90,7 +91,9 @@ export default function Company({ params }) {
           <tr key={f.properties.id}><td>{f.properties.name}</td><td>{f.properties.asset_type} · {f.properties.commodity}</td><td>{f.properties.province}</td>
             <td>{f.properties.verified ? "terverifikasi" : <span className="tag warn">lokasi perkiraan</span>}</td></tr>))}</tbody></table>
       ) : <p className="muted">Aset: data tidak tersedia</p>}
-      <p><a href={`/map?ticker=${d.ticker}`}>Lihat di peta →</a></p>
+      <p><a href={`/map?ticker=${d.ticker}`}>Lihat di peta penuh →</a></p>
+      <h2>Globe 3D & wilayah</h2>
+      <AssetMap ticker={d.ticker} apiBase="" theme="dark" />
 
       <h2>Berita</h2>
       <NewsList items={n.data} />
