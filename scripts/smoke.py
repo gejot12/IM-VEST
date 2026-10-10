@@ -1,6 +1,5 @@
 """Uji asap terhadap server yang SEDANG berjalan (setelah .\\run.ps1): python scripts/smoke.py [password]
 Login per peran, memanggil endpoint utama lewat proxy web, dan memastikan halaman web ada. Keluar 1 bila ada yang gagal."""
-import http.cookiejar
 import json
 import sys
 import urllib.error
@@ -21,10 +20,21 @@ RANK = {"INVESTOR": 0, "RM": 1, "ADMIN": 3}
 fails = []
 
 
+class Session:
+    """Cookie dibawa manual: cookie 'Secure' (mode produksi) tidak dikirim cookiejar lewat HTTP polos."""
+    cookie = None
+
+
 def call(op, url, body=None):
-    req = urllib.request.Request(BASE + url, data=json.dumps(body).encode() if body else None, headers={"Content-Type": "application/json"})
+    headers = {"Content-Type": "application/json"}
+    if op.cookie:
+        headers["Cookie"] = op.cookie
+    req = urllib.request.Request(BASE + url, data=json.dumps(body).encode() if body else None, headers=headers)
     try:
-        with op.open(req, timeout=60) as r:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            sc = r.headers.get("Set-Cookie")
+            if sc and sc.startswith("session="):
+                op.cookie = sc.split(";")[0]
             return r.status, r.read()
     except urllib.error.HTTPError as e:
         return e.code, e.read()
@@ -37,7 +47,7 @@ def check(cond, msg):
 
 
 for role, email in [("INVESTOR", "investor@imvest.local"), ("RM", "rm@imvest.local"), ("ADMIN", "admin@imvest.local")]:
-    op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+    op = Session()
     code, _ = call(op, "/api/v1/auth/login", {"email": email, "password": PW})
     check(code == 200, f"[{role}] login")
     if code != 200:
@@ -54,7 +64,7 @@ for role, email in [("INVESTOR", "investor@imvest.local"), ("RM", "rm@imvest.loc
             code, _ = call(op, page)
             check(code == 200, f"[web] {page} -> {code}")
 
-code, _ = call(urllib.request.build_opener(), "/api/v1/dashboard")
+code, _ = call(Session(), "/api/v1/dashboard")
 check(code == 401, f"tanpa login -> {code} (harap 401)")
 print(f"\n{'GAGAL: ' + str(len(fails)) if fails else 'SEMUA LULUS'}")
 sys.exit(1 if fails else 0)

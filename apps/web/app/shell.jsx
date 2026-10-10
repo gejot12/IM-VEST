@@ -14,7 +14,10 @@ export default function Shell({ children }) {
   const path = usePathname();
   const [me, setMe] = useState(null);
   const [open, setOpen] = useState(false);
-  useEffect(() => { fetch("/api/v1/auth/me").then((r) => (r.ok ? r.json() : null)).then(setMe); }, [path]);
+  useEffect(() => {
+    if (path === "/login") return; // belum login: tidak perlu /auth/me (menghindari 401 di konsol)
+    fetch("/api/v1/auth/me").then((r) => (r.ok ? r.json() : null)).then(setMe);
+  }, [path]);
   useEffect(() => setOpen(false), [path]);
   const out = async (e) => { e.preventDefault(); await fetch("/api/v1/auth/logout", { method: "POST" }); window.location.href = "/login"; };
 
