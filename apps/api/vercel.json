@@ -1,5 +1,5 @@
 {
-  "buildCommand": "python -m pip install -q -r requirements.txt && IMVEST_DB=data/snapshot.sqlite3 python -m app.refresh",
+  "buildCommand": "IMVEST_DB=data/snapshot.sqlite3 uv run python -m app.refresh",
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
   "functions": { "api/index.py": { "includeFiles": "{data/**,app/**}", "maxDuration": 60 } }
 }

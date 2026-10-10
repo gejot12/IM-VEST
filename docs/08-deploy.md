@@ -8,7 +8,7 @@ Dua proyek Vercel (Hobby, gratis) dari repo yang sama:
 | `im-vest-api` | `apps/api` | FastAPI (serverless Python) + snapshot data |
 
 ## Cara kerja API di Vercel
-- **Saat build** (`apps/api/vercel.json` → `buildCommand`): `python -m app.refresh` menarik harga, fundamental, dan berita ke `data/snapshot.sqlite3` (±8–10 menit; batas build Vercel 45 menit).
+- **Saat build** (`apps/api/vercel.json` → `buildCommand`): `uv run python -m app.refresh` menarik harga, fundamental, dan berita ke `data/snapshot.sqlite3` (±8–10 menit; batas build Vercel 45 menit).
 - **Saat berjalan**: snapshot disalin ke `/tmp/imvest.db` (satu-satunya folder yang bisa ditulis). Watchlist dan log akses bersifat sementara dan hilang tiap instans baru.
 - **Data diperbarui dengan redeploy** (Deployments → Redeploy), atau setiap push ke `main`.
 - Variabel wajib: **`IMVEST_SEED_PASSWORD`** (password 3 akun demo; juga dipakai menurunkan secret JWT). Tanpa ini build gagal dengan pesan jelas.
