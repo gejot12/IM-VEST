@@ -5,6 +5,12 @@
 Website riset pasar modal Indonesia: dashboard pasar, intelligence emiten, berita→event→dampak, peta aset,
 portofolio, Client Radar + Meeting Brief untuk RM, dan Copilot. Berjalan lokal, data nyata dari sumber publik.
 
+## Versi online (Vercel, gratis)
+
+- Web: https://im-vest.vercel.app · API: https://im-vest-api.vercel.app
+- Login: `investor@imvest.local`, `rm@imvest.local`, `admin@imvest.local`; password = nilai `IMVEST_SEED_PASSWORD` yang diisi pemilik di proyek `im-vest-api`.
+- Data ditarik saat build dan diperbarui lewat Redeploy ([docs/08-deploy.md](docs/08-deploy.md)).
+
 ## Jalankan (Windows, PowerShell)
 
 Prasyarat: [uv](https://docs.astral.sh/uv/) dan Node.js 20+.
