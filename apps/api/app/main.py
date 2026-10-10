@@ -66,18 +66,25 @@ class Login(BaseModel):
 FAILS: dict[str, list[float]] = {}  # email -> waktu gagal; 5 gagal dalam 5 menit = kunci sementara (in-memory, per proses)
 
 
+def normalize_login(value: str) -> str:
+    """Boleh username saja ("mahroja") atau email lengkap; username dipetakan ke <nama>@imvest.local."""
+    ident = value.strip().lower()
+    return ident if "@" in ident else f"{ident}@imvest.local"
+
+
 @api.post("/auth/login")
 def login(body: Login, response: Response):
+    ident = normalize_login(body.email)
     now = time.time()
-    recent = [t for t in FAILS.get(body.email, []) if now - t < 300]
+    recent = [t for t in FAILS.get(ident, []) if now - t < 300]
     if len(recent) >= 5:
         raise HTTPException(429, {"code": "RATE_LIMIT", "message": "Terlalu banyak percobaan, coba lagi beberapa menit lagi"})
     with db.connect() as con:
-        u = con.execute("SELECT * FROM users WHERE email=?", (body.email,)).fetchone()
+        u = con.execute("SELECT * FROM users WHERE email=?", (ident,)).fetchone()
     if not u or not verify_password(body.password, u["password_hash"]):
-        FAILS[body.email] = recent + [now]
-        raise HTTPException(401, {"code": "UNAUTHENTICATED", "message": "email atau password salah"})
-    FAILS.pop(body.email, None)
+        FAILS[ident] = recent + [now]
+        raise HTTPException(401, {"code": "UNAUTHENTICATED", "message": "username atau password salah"})
+    FAILS.pop(ident, None)
     response.set_cookie("session", make_token(u["id"], u["role"]), httponly=True, samesite="lax", secure=PRODUCTION, max_age=8 * 3600)
     return {"email": u["email"], "role": u["role"]}
 

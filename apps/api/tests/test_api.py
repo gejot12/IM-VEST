@@ -57,3 +57,12 @@ def test_analysis_needs_analyst_and_config(client, monkeypatch):
         monkeypatch.delenv(k, raising=False)
     r = client.post("/api/v1/companies/ANTM/analysis")
     assert r.status_code == 503 and r.json()["detail"]["code"] == "NOT_CONFIGURED"
+
+
+def test_login_with_plain_username_and_case_insensitive(client):
+    for name, role in (("mahroja", "ADMIN"), ("Investor", "INVESTOR"), ("RM", "RM"), ("investor@imvest.local", "INVESTOR")):
+        r = client.post("/api/v1/auth/login", json={"email": name, "password": PW})
+        assert r.status_code == 200 and r.json()["role"] == role, name
+    bad = client.post("/api/v1/auth/login", json={"email": "mahroja", "password": "salah"})
+    assert bad.status_code == 401 and "username" in bad.json()["detail"]["message"]
+    assert client.post("/api/v1/auth/login", json={"email": "tidak-ada", "password": PW}).status_code == 401

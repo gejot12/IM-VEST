@@ -14,7 +14,8 @@ from .auth import hash_password
 
 _LOCAL = Path(__file__).parent.parent / "data" / "companies.csv"
 CSV = _LOCAL if _LOCAL.exists() else Path(__file__).parents[3] / "seed" / "companies.csv"
-DEV_USERS = [("admin@imvest.local", "ADMIN"), ("rm@imvest.local", "RM"), ("investor@imvest.local", "INVESTOR")]
+DEV_USERS = [("admin@imvest.local", "ADMIN"), ("rm@imvest.local", "RM"), ("investor@imvest.local", "INVESTOR"),
+             ("mahroja@imvest.local", "ADMIN")]  # login cukup dengan username: mahroja
 COMMODITIES = ("NICKEL", "COAL", "CPO", "GOLD", "OIL", "COPPER")
 
 # Lokasi kawasan operasi, PERKIRAAN (pusat kota/kawasan tambang), belum diverifikasi: verified_at NULL.

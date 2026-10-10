@@ -22,11 +22,11 @@ export default function Login() {
       </div>
       <form onSubmit={submit} className="card" style={{ display: "grid", gap: 12, padding: 24 }}>
         <h2 style={{ margin: 0 }}>Masuk</h2>
-        <input name="email" type="email" placeholder="Email" required autoFocus />
+        <input name="email" type="text" placeholder="Username (mis. mahroja)" autoComplete="username" autoCapitalize="none" required autoFocus />
         <input name="password" type="password" placeholder="Password" required />
         <button>Sign in</button>
         {err && <span className="down">{err}</span>}
-        <div className="muted">Demo: investor@ / rm@ / admin@imvest.local</div>
+        <div className="muted">Username: mahroja, investor, rm, atau admin</div>
       </form>
     </>
   );
